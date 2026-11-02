@@ -5,20 +5,29 @@ tg?.ready();
 tg?.expand();
 
 // ---------- адреса API ----------
-// Бот працює на ноуті за тунелем Cloudflare, адреса якого нова після кожного запуску.
-// Її піддомен приходить параметром: ?api=… (кнопка «Хаб») або startapp=… (посилання /app).
+// Бот працює на ноуті за тунелем (ngrok або Cloudflare). Його хост бот передає параметром:
+// ?api=… (кнопка «Хаб») або startapp=… (посилання /app), закодованим base64url, бо startapp не дозволяє крапок.
 function apiBase() {
   const value = new URLSearchParams(location.search).get("api") || tg?.initDataUnsafe?.start_param || "";
   if (!value) return "";
   if (value.startsWith("http")) return value.replace(/\/$/, ""); // локальна розробка
-  return /^[a-z0-9-]+$/.test(value) ? `https://${value}.trycloudflare.com` : "";
+  try {
+    const host = atob(value.replace(/-/g, "+").replace(/_/g, "/"));
+    return /^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(host) ? `https://${host}` : "";
+  } catch {
+    return "";
+  }
 }
 const API = apiBase();
 
 async function api(method, path, body) {
   const response = await fetch(API + path, {
     method,
-    headers: { Authorization: `tma ${tg?.initData || ""}`, "Content-Type": "application/json" },
+    headers: {
+      Authorization: `tma ${tg?.initData || ""}`,
+      "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "1", // інакше безкоштовний ngrok віддає сторінку-попередження
+    },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const data = await response.json().catch(() => ({}));
