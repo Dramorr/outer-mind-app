@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>Outer Mind</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Outer Mind</h1>
+    <p class="hello" id="hello">Особистий хаб</p>
+  </header>
+
+  <main>
+    <section class="screen active" id="tasks">
+      <div class="card">
+        <h2>✅ Задачі</h2>
+        <p class="muted">Тут з'являться термінові задачі, списки й налаштування задачі.</p>
+      </div>
+    </section>
+    <section class="screen" id="finance">
+      <div class="card">
+        <h2>💰 Фінанси</h2>
+        <p class="muted">Тут з'являться витрати, денний бюджет і ліміти.</p>
+      </div>
+    </section>
+    <section class="screen" id="overview">
+      <div class="card">
+        <h2>📰 Огляд</h2>
+        <p class="muted">Тут з'являться дайджести й підсумки дня.</p>
+      </div>
+    </section>
+
+    <p class="note" id="outside" hidden>
+      Відкрий цю сторінку з бота в Telegram: поза Telegram тут лише каркас інтерфейсу.
+    </p>
+  </main>
+
+  <nav class="tabs">
+    <button data-screen="tasks" class="on">✅<span>Задачі</span></button>
+    <button data-screen="finance">💰<span>Фінанси</span></button>
+    <button data-screen="overview">📰<span>Огляд</span></button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>

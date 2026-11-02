@@ -1,0 +1,64 @@
+/* Кольори беруться з теми Telegram (--tg-theme-*); значення після коми — для відкриття в браузері. */
+:root {
+  --bg: var(--tg-theme-bg-color, #ffffff);
+  --bg2: var(--tg-theme-secondary-bg-color, #f1f1f4);
+  --text: var(--tg-theme-text-color, #111111);
+  --hint: var(--tg-theme-hint-color, #8a8a8e);
+  --accent: var(--tg-theme-button-color, #2481cc);
+  --section: var(--tg-theme-section-bg-color, #ffffff);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: var(--tg-theme-bg-color, #17212b);
+    --bg2: var(--tg-theme-secondary-bg-color, #0e1621);
+    --text: var(--tg-theme-text-color, #f5f5f5);
+    --hint: var(--tg-theme-hint-color, #708499);
+    --accent: var(--tg-theme-button-color, #5288c1);
+    --section: var(--tg-theme-section-bg-color, #17212b);
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  min-height: 100vh;
+  background: var(--bg2);
+  color: var(--text);
+  font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+
+.top { padding: 20px 16px 8px; }
+.top h1 { margin: 0; font-size: 24px; }
+.hello { margin: 4px 0 0; color: var(--hint); }
+
+main { padding: 8px 16px; }
+.screen { display: none; }
+.screen.active { display: block; }
+.card {
+  background: var(--section);
+  border-radius: 14px;
+  padding: 16px;
+}
+.card h2 { margin: 0 0 6px; font-size: 18px; }
+.muted { margin: 0; color: var(--hint); }
+.note { margin-top: 16px; color: var(--hint); font-size: 14px; text-align: center; }
+
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  display: flex;
+  background: var(--bg);
+  border-top: 1px solid color-mix(in srgb, var(--hint) 25%, transparent);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tabs button {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 0 10px;
+  border: 0; background: none;
+  color: var(--hint);
+  font: inherit; font-size: 20px;
+  cursor: pointer;
+}
+.tabs button span { font-size: 12px; }
+.tabs button.on { color: var(--accent); }
