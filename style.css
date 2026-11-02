@@ -151,3 +151,52 @@ main { padding: 12px 16px; }
 }
 .tabs button span { font-size: 12px; }
 .tabs button.on { color: var(--accent); }
+
+/* ---------- фінанси ---------- */
+#finance > * + * { margin-top: 12px; }
+.small { font-size: 13px; }
+.section { margin: 16px 2px 8px; font-size: 15px; }
+.budget-head { display: flex; justify-content: space-between; }
+.big { font-size: 26px; font-weight: 700; margin: 2px 0 8px; }
+.big .of { font-size: 16px; font-weight: 400; color: var(--hint); }
+.bar { height: 6px; border-radius: 3px; background: var(--bg2); overflow: hidden; margin-bottom: 8px; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 3px; }
+.bar i.warn { background: #f0a020; }
+.bar i.over { background: var(--danger); }
+.money-row { display: flex; justify-content: space-between; margin-top: 10px; }
+.link { border: 0; background: none; padding: 0; color: var(--accent); cursor: pointer; font-size: 15px; }
+.segments.tight { margin: 0; }
+
+.month-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; }
+.month-nav h3 { margin: 0; font-size: 16px; }
+.totals { display: flex; gap: 12px; margin-bottom: 10px; }
+.totals div { flex: 1; display: grid; gap: 2px; }
+.totals b { font-size: 18px; }
+.hint { margin: 8px 0 0; }
+
+.cats { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.cats li { cursor: pointer; }
+.cats .line { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; }
+.cats .line span:last-child { white-space: nowrap; color: var(--hint); }
+.cats .bar { height: 4px; margin: 4px 0 0; }
+
+.ops { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ops .day { font-size: 13px; color: var(--hint); margin: 8px 2px 0; }
+.op {
+  display: flex; gap: 10px; align-items: center;
+  background: var(--section); border-radius: 12px; padding: 10px 12px; cursor: pointer;
+}
+.op .ico { font-size: 20px; flex: none; }
+.op .body { flex: 1; min-width: 0; }
+.op .place { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.op .cat { font-size: 13px; color: var(--hint); }
+.op .sum { font-weight: 600; white-space: nowrap; }
+.op .sum.plus { color: #2e9e4f; }
+.op.muted-op { opacity: .55; }
+.op .actions { display: flex; gap: 6px; flex: none; }
+.op .actions button { border: 0; border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 14px; }
+.op .actions .ok { background: var(--accent); color: var(--accent-text); }
+.op .actions .other { background: var(--bg2); }
+.pending-op { flex-wrap: wrap; }
+.pending-op .actions { width: 100%; }
+.pending-op .actions button { flex: 1; padding: 8px 10px; }

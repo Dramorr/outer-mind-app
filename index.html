@@ -35,10 +35,58 @@
     </section>
 
     <section class="screen" id="finance">
-      <div class="card">
-        <h2>💰 Фінанси</h2>
-        <p class="muted">Скоро: витрати, денний бюджет і ліміти. Поки що — в гілці «Фінанси» в групі.</p>
+      <div class="card budget">
+        <div class="budget-head">
+          <span class="muted">Сьогодні</span>
+          <span id="f-days" class="muted"></span>
+        </div>
+        <div class="big" id="f-today"></div>
+        <div class="bar"><i id="f-today-bar"></i></div>
+        <div class="muted small" id="f-month-line"></div>
+        <div class="money-row">
+          <button class="link" id="f-cash" type="button"></button>
+          <button class="link" id="f-balance-btn" type="button">💳 Баланс</button>
+        </div>
+        <div class="muted small" id="f-balance" hidden></div>
       </div>
+
+      <div id="f-pending-box" hidden>
+        <h3 class="section">⏳ Підтвердити</h3>
+        <ul class="ops" id="f-pending"></ul>
+      </div>
+
+      <form class="card add" id="f-add" autocomplete="off">
+        <div class="segments tight" id="f-kind">
+          <button type="button" data-kind="spent" class="on">− Витрата</button>
+          <button type="button" data-kind="income">+ Дохід</button>
+        </div>
+        <div class="row">
+          <input id="f-amount" inputmode="decimal" placeholder="Сума, ₴" maxlength="12">
+          <input id="f-comment" placeholder="на що" maxlength="200">
+        </div>
+        <div class="add-extra" id="f-add-extra" hidden>
+          <div class="chips" id="f-add-cat"></div>
+          <button class="primary" type="submit">💵 Записати готівкою</button>
+        </div>
+      </form>
+
+      <div class="month-nav">
+        <button type="button" class="ghost" id="f-prev">◀</button>
+        <h3 id="f-month-title"></h3>
+        <button type="button" class="ghost" id="f-next">▶</button>
+      </div>
+      <div class="card">
+        <div class="totals">
+          <div><span class="muted small">Дохід</span><b id="f-income"></b></div>
+          <div><span class="muted small">Витрати</span><b id="f-spent"></b></div>
+        </div>
+        <ul class="cats" id="f-cats"></ul>
+        <p class="muted small hint">Натисни категорію, щоб задати ліміт на місяць.</p>
+      </div>
+
+      <h3 class="section">📋 Операції</h3>
+      <ul class="ops" id="f-ops"></ul>
+      <p class="empty" id="f-ops-empty" hidden>За цей місяць операцій немає.</p>
     </section>
     <section class="screen" id="overview">
       <div class="card">
@@ -86,6 +134,10 @@
     </form>
   </div>
 
+  <div class="sheet-back" id="fsheet" hidden>
+    <form class="sheet" id="fsheet-form" autocomplete="off"></form>
+  </div>
+
   <nav class="tabs">
     <button data-screen="tasks" class="on">✅<span>Задачі</span></button>
     <button data-screen="finance">💰<span>Фінанси</span></button>
@@ -93,5 +145,6 @@
   </nav>
 
   <script src="app.js"></script>
+  <script src="finance.js"></script>
 </body>
 </html>
