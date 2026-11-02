@@ -9,35 +9,82 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="top">
-    <h1>Outer Mind</h1>
-    <p class="hello" id="hello">Особистий хаб</p>
-  </header>
-
   <main>
+    <p class="banner" id="banner" hidden></p>
+
     <section class="screen active" id="tasks">
-      <div class="card">
-        <h2>✅ Задачі</h2>
-        <p class="muted">Тут з'являться термінові задачі, списки й налаштування задачі.</p>
+      <form class="add card" id="add-form" autocomplete="off">
+        <input id="add-title" maxlength="200" placeholder="✍️ Нова задача…">
+        <div class="add-extra" id="add-extra" hidden>
+          <div class="chips" id="add-priority"></div>
+          <div class="chips" id="add-category"></div>
+          <button class="primary" type="submit">Додати</button>
+        </div>
+      </form>
+
+      <div class="segments" id="filters">
+        <button data-filter="urgent" class="on">🔥 Термінові</button>
+        <button data-filter="all">📋 Всі</button>
+        <button data-filter="lists">🗂 Списки</button>
       </div>
+      <div class="chips lists" id="list-chips" hidden></div>
+
+      <p class="summary" id="summary"></p>
+      <ul class="tasks" id="task-list"></ul>
+      <p class="empty" id="empty" hidden></p>
     </section>
+
     <section class="screen" id="finance">
       <div class="card">
         <h2>💰 Фінанси</h2>
-        <p class="muted">Тут з'являться витрати, денний бюджет і ліміти.</p>
+        <p class="muted">Скоро: витрати, денний бюджет і ліміти. Поки що — в гілці «Фінанси» в групі.</p>
       </div>
     </section>
     <section class="screen" id="overview">
       <div class="card">
         <h2>📰 Огляд</h2>
-        <p class="muted">Тут з'являться дайджести й підсумки дня.</p>
+        <p class="muted">Скоро: дайджести й підсумки дня. Поки що — в темі «Огляд» у групі.</p>
       </div>
     </section>
-
-    <p class="note" id="outside" hidden>
-      Відкрий цю сторінку з бота в Telegram: поза Telegram тут лише каркас інтерфейсу.
-    </p>
   </main>
+
+  <div class="toast" id="toast" hidden>
+    <span id="toast-text"></span>
+    <button id="toast-undo" hidden>↩️ Повернути</button>
+  </div>
+
+  <div class="sheet-back" id="sheet" hidden>
+    <form class="sheet" id="edit-form" autocomplete="off">
+      <h2>⚙️ Задача</h2>
+      <label>Назва<input id="e-title" maxlength="200" required></label>
+      <span class="label">Пріоритет</span>
+      <div class="chips" id="e-priority"></div>
+      <span class="label">Список</span>
+      <div class="chips" id="e-category"></div>
+      <span class="label">Дедлайн</span>
+      <div class="row">
+        <input type="date" id="e-date">
+        <input type="time" id="e-time">
+        <button type="button" class="ghost" id="e-nodate">✖</button>
+      </div>
+      <label>Повторення
+        <select id="e-rec">
+          <option value="none">Ні</option>
+          <option value="daily">Щодня</option>
+          <option value="weekly">Щотижня (день дедлайну)</option>
+          <option value="monthly">Щомісяця (число дедлайну)</option>
+          <option value="other">Інше…</option>
+        </select>
+      </label>
+      <input id="e-rec-text" placeholder="пн, чт · по буднях · кожні 3 дні · 5 числа" hidden>
+      <label>💬 Коментар<textarea id="e-comment" maxlength="1000" rows="3"></textarea></label>
+      <p class="error" id="e-error" hidden></p>
+      <div class="row">
+        <button type="button" class="danger" id="e-delete">🗑 Видалити</button>
+        <button type="submit" class="primary">Зберегти</button>
+      </div>
+    </form>
+  </div>
 
   <nav class="tabs">
     <button data-screen="tasks" class="on">✅<span>Задачі</span></button>
