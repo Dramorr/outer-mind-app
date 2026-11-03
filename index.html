@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="light dark">
   <title>Outer Mind</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=202611032359">
 </head>
 <body>
   <main>
@@ -92,6 +92,30 @@
       <ul class="ops" id="f-ops"></ul>
       <p class="empty" id="f-ops-empty" hidden>За цей місяць операцій немає.</p>
     </section>
+    <section class="screen" id="achievements">
+      <div class="card level">
+        <div class="level-head">
+          <span class="level-badge" id="a-level"></span>
+          <div>
+            <b id="a-xp"></b>
+            <div class="muted small" id="a-next"></div>
+          </div>
+        </div>
+        <div class="bar"><i id="a-bar"></i></div>
+        <div class="muted small" id="a-count"></div>
+      </div>
+
+      <div class="segments tight" id="a-filter">
+        <button type="button" data-filter="progress" class="on">🎯 Попереду</button>
+        <button type="button" data-filter="done">🏆 Отримані</button>
+      </div>
+      <ul class="achs" id="a-list"></ul>
+      <p class="empty" id="a-empty" hidden></p>
+
+      <h3 class="section">✨ Останні XP</h3>
+      <ul class="xp-log" id="a-recent"></ul>
+    </section>
+
     <section class="screen" id="overview">
       <div class="card">
         <h2>📰 Огляд</h2>
@@ -145,10 +169,12 @@
   <nav class="tabs">
     <button data-screen="tasks" class="on">✅<span>Задачі</span></button>
     <button data-screen="finance">💰<span>Фінанси</span></button>
+    <button data-screen="achievements">🏆<span>Ачівки</span></button>
     <button data-screen="overview">📰<span>Огляд</span></button>
   </nav>
 
-  <script src="app.js"></script>
-  <script src="finance.js"></script>
+  <script src="app.js?v=202611032359"></script>
+  <script src="finance.js?v=202611032359"></script>
+  <script src="achievements.js?v=202611032359"></script>
 </body>
 </html>
