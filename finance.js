@@ -5,6 +5,7 @@ const fin = {
   data: null,
   month: "",         // "" — поточний
   kind: "spent",
+  group: "days",     // операції: days — по днях, stores — по магазинах
   addCategory: "",
   loaded: false,
 };
@@ -123,16 +124,91 @@ function renderFinance() {
     return li;
   }));
 
-  // операції по днях
+  // операції по днях або по магазинах
+  document.querySelectorAll("#f-group button").forEach((b) => b.classList.toggle("on", b.dataset.group === fin.group));
+  $("f-ops").replaceChildren(...(fin.group === "stores" ? storeItems(d.ops) : dayItems(d.ops)));
+  $("f-ops-empty").hidden = d.ops.length > 0;
+}
+
+function dayItems(ops) {
   const items = [];
   let day = "";
-  for (const tx of d.ops) {
+  for (const tx of ops) {
     const label = new Date(tx.time * 1000).toLocaleDateString("uk-UA", { weekday: "short", day: "numeric", month: "long" });
     if (label !== day) { items.push(el("li", "day", label)); day = label; }
     items.push(opItem(tx));
   }
-  $("f-ops").replaceChildren(...items);
-  $("f-ops-empty").hidden = d.ops.length > 0;
+  return items;
+}
+
+const placeOf = (tx) => tx.description || tx.comment || "";
+
+// Магазини місяця: скільки разів і скільки грошей, від найбільших витрат
+function storeItems(ops) {
+  const stores = new Map();
+  for (const tx of ops) {
+    const place = placeOf(tx);
+    const key = place.toLocaleLowerCase("uk-UA") || "\u0000";
+    const s = stores.get(key) || { place, count: 0, total: 0, raw: 0, excluded: true, category: tx.category,
+      cash: tx.source === "cash" };
+    s.count += 1;
+    s.raw += tx.amount;
+    if (!tx.excluded) { s.total += tx.amount; s.excluded = false; }
+    stores.set(key, s);
+  }
+  return [...stores.values()]
+    .map((s) => (s.excluded ? { ...s, total: s.raw } : s)) // свої рахунки й зняття: реальна сума, блідо
+    .sort((a, b) => a.excluded - b.excluded || a.total - b.total || b.count - a.count)
+    .map((s) => {
+      const li = el("li", "op" + (s.excluded ? " muted-op" : ""));
+      li.append(el("span", "ico", s.cash ? "💵" : catIcon(s.category)));
+      const body = el("div", "body");
+      body.append(el("div", "place", s.place || "Без назви"));
+      body.append(el("div", "cat", `${s.count} ${plural(s.count, "операція", "операції", "операцій")}`));
+      li.append(body, el("span", "sum" + (s.total > 0 ? " plus" : ""), money(s.total, s.total !== 0)));
+      if (s.place) li.onclick = () => storeSheet(s.place);
+      return li;
+    });
+}
+
+function plural(n, one, few, many) {
+  const n10 = n % 10, n100 = n % 100;
+  if (n10 === 1 && n100 !== 11) return one;
+  if (n10 >= 2 && n10 <= 4 && (n100 < 12 || n100 > 14)) return few;
+  return many;
+}
+
+const shortDate = (ts) => new Date(ts * 1000).toLocaleDateString("uk-UA", { day: "numeric", month: "short", year: "numeric" });
+
+// Історія одного магазину за весь час
+function storeSheet(place) {
+  openSheet((form) => {
+    form.append(el("h2", "", `🏪 ${place}`), el("p", "muted small", "⏳ Завантажую…"));
+  });
+  run(async () => {
+    const s = await api("GET", `/api/finance/store?place=${encodeURIComponent(place)}`);
+    const form = $("fsheet-form");
+    if ($("fsheet").hidden) return; // панель уже закрили
+    form.replaceChildren(el("h2", "", `🏪 ${place}`));
+    const totals = el("div", "totals");
+    const cell = (title, value) => {
+      const div = el("div");
+      div.append(el("span", "muted small", title), el("b", "", value));
+      return div;
+    };
+    totals.append(cell("Витрачено", money(s.spent)), cell("Середній чек", money(s.average)));
+    form.append(totals);
+    const facts = [`${s.count} ${plural(s.count, "операція", "операції", "операцій")}`];
+    if (s.income) facts.push(`надходжень ${money(s.income)}`);
+    if (s.first) facts.push(s.first === s.last ? shortDate(s.first) : `${shortDate(s.first)} – ${shortDate(s.last)}`);
+    form.append(el("p", "muted small", facts.join(" · ")));
+    if (s.categories.length) {
+      form.append(el("p", "muted small", "Категорії: " + s.categories.map((c) => `${catLabel(c.key)} ×${c.count}`).join(", ")));
+    }
+    const list = el("ul", "ops");
+    list.append(...dayItems(s.ops));
+    form.append(list);
+  });
 }
 
 // ---------- панель (вибір категорії, суми) ----------
@@ -163,6 +239,12 @@ function pickCategory(tx) {
       confirmOp(tx, key);
     });
     form.append(box);
+    if (placeOf(tx)) {
+      const history = el("button", "ghost", "🏪 Усі операції тут");
+      history.type = "button";
+      history.onclick = () => storeSheet(placeOf(tx));
+      form.append(history);
+    }
     if (tx.source === "cash") {
       const del = el("button", "danger", "🗑 Видалити запис");
       del.type = "button";
@@ -265,7 +347,11 @@ $("f-add").addEventListener("submit", (event) => {
   });
 });
 
-$("f-prev").onclick = () => { fin.month = shiftMonth(fin.data.month.key, -1); loadFinance(); };
+document.querySelectorAll("#f-group button").forEach((button) => {
+  button.onclick = () => { fin.group = button.dataset.group; renderFinance(); };
+});
+
+$("f-prev").onclick =() => { fin.month = shiftMonth(fin.data.month.key, -1); loadFinance(); };
 $("f-next").onclick = () => { fin.month = shiftMonth(fin.data.month.key, 1); loadFinance(); };
 
 // Вкладку вантажимо, коли її відкрили, і оновлюємо при поверненні в застосунок
