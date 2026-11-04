@@ -6,7 +6,7 @@ tg?.expand();
 
 // ---------- адреса API ----------
 // Бот працює на ноуті за тунелем (ngrok або Cloudflare). Його хост бот передає параметром:
-// ?api=… (кнопка «Хаб») або startapp=… (посилання /app), закодованим base64url, бо startapp не дозволяє крапок.
+// ?api=… (кнопка «Хаб» і кнопки під сповіщеннями), закодованим base64url; startapp=… теж розуміємо.
 function apiBase() {
   const value = new URLSearchParams(location.search).get("api") || tg?.initDataUnsafe?.start_param || "";
   if (!value) return "";
@@ -125,7 +125,7 @@ function render() {
 
 async function load() {
   if (!API) {
-    banner("Відкрий застосунок кнопкою «Хаб» у чаті з ботом або командою /app у групі: так він дізнається, де бот.");
+    banner("Відкрий застосунок кнопкою «Хаб» у чаті з ботом: так він дізнається, де бот.");
     return;
   }
   try {
@@ -298,6 +298,6 @@ tabs.forEach((button) => {
   });
 });
 
-// Дані могли змінитись у групі, поки застосунок був згорнутий
+// Дані могли змінитись (нові операції з банку, задачі з розкладу), поки застосунок був згорнутий
 document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
 load();

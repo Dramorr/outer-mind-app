@@ -225,3 +225,12 @@ main { padding: 12px 16px; }
 .xp-log li { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; padding: 6px 2px; border-bottom: 1px solid var(--line); }
 .xp-log li span:last-child { color: var(--accent); font-weight: 600; white-space: nowrap; }
 .xp-log .when { color: var(--hint); font-size: 12px; }
+
+/* ---------- огляд ---------- */
+.notices { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.notices .day { font-size: 13px; color: var(--hint); margin: 8px 2px 0; }
+.notice { background: var(--section); border-radius: 14px; padding: 12px 14px; }
+.notice.alert { border-left: 3px solid var(--accent); }
+.notice-head { display: flex; justify-content: space-between; font-size: 13px; color: var(--hint); margin-bottom: 4px; }
+.notice-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; }
+.notice-text code { font-size: 14px; }
