@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="light dark">
   <title>Outer Mind</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css?v=202611041400">
+  <link rel="stylesheet" href="style.css?v=202611041700">
 </head>
 <body>
   <main>
@@ -14,7 +14,7 @@
 
     <section class="screen active" id="tasks">
       <form class="add card" id="add-form" autocomplete="off">
-        <input id="add-title" maxlength="200" placeholder="✍️ Нова задача…">
+        <input id="add-title" maxlength="200" placeholder="Нова задача…">
         <div class="add-extra" id="add-extra" hidden>
           <div class="chips" id="add-priority"></div>
           <div class="chips" id="add-category"></div>
@@ -23,15 +23,32 @@
       </form>
 
       <div class="segments" id="filters">
-        <button data-filter="urgent" class="on">🔥 Термінові</button>
-        <button data-filter="all">📋 Всі</button>
-        <button data-filter="lists">🗂 Списки</button>
+        <button data-filter="urgent" data-icon="flame" class="on">Термінові</button>
+        <button data-filter="all" data-icon="scroll">Всі</button>
+        <button data-filter="lists" data-icon="book">Списки</button>
       </div>
       <div class="chips lists" id="list-chips" hidden></div>
 
       <p class="summary" id="summary"></p>
       <ul class="tasks" id="task-list"></ul>
       <p class="empty" id="empty" hidden></p>
+    </section>
+
+    <section class="screen" id="shopping">
+      <form class="add card" id="s-add" autocomplete="off">
+        <textarea id="s-text" rows="1" maxlength="3000" placeholder="Що купити? Можна одразу кілька: молоко, хліб, яйця"></textarea>
+        <button class="primary" type="submit" data-icon="basket" hidden id="s-add-btn">Додати в кошик</button>
+      </form>
+      <p class="summary" id="s-summary"></p>
+      <ul class="tasks shop" id="s-need"></ul>
+      <p class="empty" id="s-empty" hidden></p>
+      <div id="s-bought-box" hidden>
+        <div class="section-row">
+          <h3 class="section" data-icon="check">Куплено</h3>
+          <button type="button" class="link" id="s-clear" data-icon="bin">Очистити</button>
+        </div>
+        <ul class="tasks shop bought" id="s-bought"></ul>
+      </div>
     </section>
 
     <section class="screen" id="finance">
@@ -45,13 +62,13 @@
         <div class="muted small" id="f-month-line"></div>
         <div class="money-row">
           <button class="link" id="f-cash" type="button"></button>
-          <button class="link" id="f-balance-btn" type="button">💳 Баланс</button>
+          <button class="link" id="f-balance-btn" type="button" data-icon="key">Баланс</button>
         </div>
         <div class="muted small" id="f-balance" hidden></div>
       </div>
 
       <div id="f-pending-box" hidden>
-        <h3 class="section">⏳ Підтвердити</h3>
+        <h3 class="section" data-icon="hourglass">Підтвердити</h3>
         <ul class="ops" id="f-pending"></ul>
       </div>
 
@@ -66,14 +83,14 @@
         </div>
         <div class="add-extra" id="f-add-extra" hidden>
           <div class="chips" id="f-add-cat"></div>
-          <button class="primary" type="submit">💵 Записати готівкою</button>
+          <button class="primary" type="submit" data-icon="coin">Записати готівкою</button>
         </div>
       </form>
 
       <div class="month-nav">
-        <button type="button" class="ghost" id="f-prev">◀</button>
+        <button type="button" class="ghost" id="f-prev" data-icon="arrow_l" aria-label="Попередній місяць"></button>
         <h3 id="f-month-title"></h3>
-        <button type="button" class="ghost" id="f-next">▶</button>
+        <button type="button" class="ghost" id="f-next" data-icon="arrow_r" aria-label="Наступний місяць"></button>
       </div>
       <div class="card">
         <div class="totals">
@@ -84,10 +101,10 @@
         <p class="muted small hint">Натисни категорію, щоб задати ліміт на місяць.</p>
       </div>
 
-      <h3 class="section">📋 Операції</h3>
+      <h3 class="section" data-icon="scroll">Операції</h3>
       <div class="segments tight" id="f-group">
-        <button type="button" data-group="days" class="on">📅 По днях</button>
-        <button type="button" data-group="stores">🏪 По магазинах</button>
+        <button type="button" data-group="days" data-icon="calendar" class="on">По днях</button>
+        <button type="button" data-group="stores" data-icon="stall">По магазинах</button>
       </div>
       <ul class="ops" id="f-ops"></ul>
       <p class="empty" id="f-ops-empty" hidden>За цей місяць операцій немає.</p>
@@ -106,13 +123,13 @@
       </div>
 
       <div class="segments tight" id="a-filter">
-        <button type="button" data-filter="progress" class="on">🎯 Попереду</button>
-        <button type="button" data-filter="done">🏆 Отримані</button>
+        <button type="button" data-filter="progress" data-icon="target" class="on">Попереду</button>
+        <button type="button" data-filter="done" data-icon="trophy">Отримані</button>
       </div>
       <ul class="achs" id="a-list"></ul>
       <p class="empty" id="a-empty" hidden></p>
 
-      <h3 class="section">✨ Останні XP</h3>
+      <h3 class="section" data-icon="sparkle">Останні XP</h3>
       <ul class="xp-log" id="a-recent"></ul>
     </section>
 
@@ -124,12 +141,12 @@
 
   <div class="toast" id="toast" hidden>
     <span id="toast-text"></span>
-    <button id="toast-undo" hidden>↩️ Повернути</button>
+    <button id="toast-undo" data-icon="arrow_l" hidden>Повернути</button>
   </div>
 
   <div class="sheet-back" id="sheet" hidden>
     <form class="sheet" id="edit-form" autocomplete="off">
-      <h2>⚙️ Задача</h2>
+      <h2 data-icon="gear">Задача</h2>
       <label>Назва<input id="e-title" maxlength="200" required></label>
       <span class="label">Пріоритет</span>
       <div class="chips" id="e-priority"></div>
@@ -139,7 +156,7 @@
       <div class="row">
         <input type="date" id="e-date">
         <input type="time" id="e-time">
-        <button type="button" class="ghost" id="e-nodate">✖</button>
+        <button type="button" class="ghost" id="e-nodate" data-icon="cross" aria-label="Без дедлайну"></button>
       </div>
       <label>Повторення
         <select id="e-rec">
@@ -151,10 +168,10 @@
         </select>
       </label>
       <input id="e-rec-text" placeholder="пн, чт · по буднях · кожні 3 дні · 5 числа" hidden>
-      <label>💬 Коментар<textarea id="e-comment" maxlength="1000" rows="3"></textarea></label>
+      <label><span data-icon="speech">Коментар</span><textarea id="e-comment" maxlength="1000" rows="3"></textarea></label>
       <p class="error" id="e-error" hidden></p>
       <div class="row">
-        <button type="button" class="danger" id="e-delete">🗑 Видалити</button>
+        <button type="button" class="danger" id="e-delete" data-icon="bin">Видалити</button>
         <button type="submit" class="primary">Зберегти</button>
       </div>
     </form>
@@ -165,16 +182,19 @@
   </div>
 
   <nav class="tabs">
-    <button data-screen="tasks" class="on">✅<span>Задачі</span></button>
-    <button data-screen="finance">💰<span>Фінанси</span></button>
-    <button data-screen="achievements">🏆<span>Ачівки</span></button>
-    <button data-screen="overview">📰<span>Огляд</span></button>
+    <button data-screen="tasks" data-icon="quest" class="on"><span>Задачі</span></button>
+    <button data-screen="shopping" data-icon="basket"><span>Кошик</span></button>
+    <button data-screen="finance" data-icon="sack"><span>Фінанси</span></button>
+    <button data-screen="achievements" data-icon="trophy"><span>Ачівки</span></button>
+    <button data-screen="overview" data-icon="letter"><span>Огляд</span></button>
   </nav>
 
-  <script src="app.js?v=202611041400"></script>
-  <script src="finance.js?v=202611041400"></script>
-  <script src="badges.js?v=202611041400"></script>
-  <script src="achievements.js?v=202611041400"></script>
-  <script src="overview.js?v=202611041400"></script>
+  <script src="badges.js?v=202611041700"></script>
+  <script src="icons.js?v=202611041700"></script>
+  <script src="app.js?v=202611041700"></script>
+  <script src="finance.js?v=202611041700"></script>
+  <script src="shopping.js?v=202611041700"></script>
+  <script src="achievements.js?v=202611041700"></script>
+  <script src="overview.js?v=202611041700"></script>
 </body>
 </html>

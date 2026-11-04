@@ -1,16 +1,39 @@
 // Вкладка «Огляд»: дайджести, підсумки й попередження всіх модулів (ті самі, що бот шле в особистий чат).
 // Спільні api(), el(), banner(), $ — з app.js.
 
-const MODULE_NAME = { tasks: "Задачі", finance: "Фінанси", achievements: "Ачівки" };
+const MODULE_NAME = { tasks: "Задачі", shopping: "Кошик", finance: "Фінанси", achievements: "Ачівки" };
 
 // Текст сповіщення — HTML у форматі Telegram. Переносимо лише дозволені теги й текст, без атрибутів:
 // навіть якщо в тексті щось зайве, у сторінку воно потрапить як звичайний текст.
 const ALLOWED = new Set(["B", "STRONG", "I", "EM", "U", "S", "CODE"]);
 
+// Емодзі з тексту бота → піксельні іконки застосунку (у чаті Telegram лишаються емодзі)
+const EMOJI_ICON = {
+  "🔥": "flame", "⚠": "warn", "🚨": "warn", "🏆": "trophy", "⭐": "star", "🎉": "sparkle", "✨": "sparkle",
+  "☀": "sparkle", "💰": "sack", "💸": "coins", "💵": "coin", "📅": "calendar", "🗓": "calendar", "🌙": "moon",
+  "⏳": "hourglass", "✅": "check", "📊": "scroll", "📈": "arrow_r", "📉": "arrow_l", "💳": "key",
+  "🛒": "basket", "🍫": "candy", "☕": "mug", "🚕": "boot", "🚗": "wheel", "🏠": "house", "📱": "orb",
+  "💊": "potion", "🛍": "ring", "🎮": "dice", "💼": "anvil", "❓": "mystery", "🔄": "cycle", "🏧": "coin",
+};
+const EMOJI_RE = new RegExp(`(${Object.keys(EMOJI_ICON).join("|")})️?`, "gu");
+
+function withIcons(text, into) {
+  let last = 0;
+  for (const m of text.matchAll(EMOJI_RE)) {
+    into.append(text.slice(last, m.index));
+    const holder = document.createElement("span");
+    holder.innerHTML = iconHtml(EMOJI_ICON[m[1]], false);
+    into.append(holder.firstChild);
+    last = m.index + m[0].length;
+    if (text[last] === " ") last += 1; // відступ дає сама іконка
+  }
+  into.append(text.slice(last));
+}
+
 function tgHtml(html) {
   const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
   const copy = (node, into) => node.childNodes.forEach((child) => {
-    if (child.nodeType === Node.TEXT_NODE) into.append(child.textContent);
+    if (child.nodeType === Node.TEXT_NODE) withIcons(child.textContent, into);
     else if (child.nodeType === Node.ELEMENT_NODE) {
       if (ALLOWED.has(child.tagName)) {
         const tag = document.createElement(child.tagName.toLowerCase());
@@ -50,7 +73,7 @@ async function loadOverview() {
       const li = el("li", `notice ${item.kind}`);
       const head = el("div", "notice-head");
       const time = new Date(item.ts * 1000).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
-      head.append(el("span", "", MODULE_NAME[item.module] || "Огляд"), el("span", "when", time));
+      head.append(icon(MODULE_ICON[item.module] || "letter", MODULE_NAME[item.module] || "Огляд"), el("span", "when", time));
       const body = tgHtml(item.text);
       body.className = "notice-text";
       li.append(head, body);

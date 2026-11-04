@@ -60,18 +60,30 @@ function el(tag, className, text) {
   return node;
 }
 
+// Пункт: {key, label, icon?} — icon: ім'я піксельної іконки (icons.js)
 function chips(container, items, current, onPick) {
-  container.replaceChildren(...items.map(({ key, label }) => {
-    const button = el("button", key === current ? "on" : "", label);
+  container.replaceChildren(...items.map(({ key, label, icon: name }) => {
+    const button = el("button", key === current ? "on" : "");
+    button.append(name ? icon(name, label) : label);
     button.type = "button";
     button.onclick = () => onPick(key);
     return button;
   }));
 }
 
-const priorityItems = () => state.priorities.map((p) => ({ key: p.key, label: `${p.icon} ${p.name}` }));
-const categoryLabel = (key) => state.categories.find((c) => c.key === key)?.label || "";
-const priorityIcon = (key) => state.priorities.find((p) => p.key === key)?.icon || "";
+const priorityItems = () => state.priorities.map((p) => ({ key: p.key, label: p.name, icon: `gem_${p.key}` }));
+const categoryItems = () => state.categories.map((c) => ({ key: c.key, label: plainLabel(c.label), icon: TASK_CAT_ICON[c.key] }));
+const categoryLabel = (key) => plainLabel(state.categories.find((c) => c.key === key)?.label || "");
+
+// Рядок з кількох частин «іконка + текст» через « · »
+function metaLine(className, parts) {
+  const div = el("div", className);
+  parts.forEach(([name, text], i) => {
+    if (i) div.append(" · ");
+    div.append(name ? icon(name, text) : text);
+  });
+  return div;
+}
 
 // ---------- список ----------
 function visibleTasks() {
@@ -88,13 +100,19 @@ function taskItem(task) {
   check.onclick = (event) => { event.stopPropagation(); complete(task, li); };
 
   const body = el("div", "body");
-  body.append(el("div", "title", `${priorityIcon(task.priority)} ${task.title}`));
+  const title = el("div", "title");
+  title.append(icon(`gem_${task.priority}`, task.title));
+  body.append(title);
   const meta = [];
-  if (task.category !== "other") meta.push(categoryLabel(task.category));
-  if (task.deadline_label) meta.push(task.deadline_label);
-  if (task.recurrence_label) meta.push(`🔁 ${task.recurrence_label}`);
-  if (meta.length) body.append(el("div", "meta" + (task.overdue ? " overdue" : ""), meta.join(" · ")));
-  if (task.comment) body.append(el("div", "comment", `💬 ${task.comment}`));
+  if (task.category !== "other") meta.push([TASK_CAT_ICON[task.category], categoryLabel(task.category)]);
+  if (task.deadline_label) meta.push([task.overdue ? "warn" : null, task.deadline_label]);
+  if (task.recurrence_label) meta.push(["cycle", task.recurrence_label]);
+  if (meta.length) body.append(metaLine("meta" + (task.overdue ? " overdue" : ""), meta));
+  if (task.comment) {
+    const comment = el("div", "comment");
+    comment.append(icon("speech", task.comment));
+    body.append(comment);
+  }
 
   li.append(check, body);
   li.onclick = () => openEditor(task);
@@ -106,20 +124,21 @@ function render() {
   $("task-list").replaceChildren(...tasks.map(taskItem));
   const urgent = state.tasks.filter((t) => t.urgent).length;
   const overdue = state.tasks.filter((t) => t.overdue).length;
-  $("summary").textContent = state.tasks.length
-    ? `🔥 Термінових: ${urgent}` + (overdue ? ` · ⚠️ прострочених: ${overdue}` : "") + ` · усього: ${state.tasks.length}`
-    : "";
+  const parts = [["flame", `Термінових: ${urgent}`]];
+  if (overdue) parts.push(["warn", `прострочених: ${overdue}`]);
+  parts.push([null, `усього: ${state.tasks.length}`]);
+  $("summary").replaceChildren(...(state.tasks.length ? [metaLine("", parts)] : []));
   $("empty").hidden = tasks.length > 0;
-  $("empty").textContent = state.filter === "urgent" && state.tasks.length
-    ? "Термінових задач немає 🎉" : "Тут порожньо 🎉";
+  $("empty").replaceChildren(icon("sparkle", state.filter === "urgent" && state.tasks.length
+    ? "Термінових задач немає" : "Тут порожньо"));
 
   $("list-chips").hidden = state.filter !== "lists";
-  chips($("list-chips"), state.categories.map((c) => ({
-    key: c.key, label: `${c.label} · ${state.tasks.filter((t) => t.category === c.key).length}`,
+  chips($("list-chips"), categoryItems().map((c) => ({
+    ...c, label: `${c.label} · ${state.tasks.filter((t) => t.category === c.key).length}`,
   })), state.list, (key) => { state.list = key; render(); });
 
   chips($("add-priority"), priorityItems(), state.add.priority, (key) => { state.add.priority = key; render(); });
-  chips($("add-category"), [{ key: "", label: "🪄 Сам визначу" }, ...state.categories], state.add.category,
+  chips($("add-category"), [{ key: "", label: "Сам визначу", icon: "wand" }, ...categoryItems()], state.add.category,
     (key) => { state.add.category = key; render(); });
 }
 
@@ -142,8 +161,9 @@ async function load() {
 
 // ---------- дії ----------
 let toastTimer;
-function toast(text, onUndo) {
-  $("toast-text").textContent = text;
+// iconName — піксельна іконка перед текстом (icons.js)
+function toast(text, onUndo, iconName) {
+  $("toast-text").replaceChildren(iconName ? icon(iconName, text) : text);
   $("toast-undo").hidden = !onUndo;
   $("toast-undo").onclick = async () => { $("toast").hidden = true; await onUndo(); };
   $("toast").hidden = false;
@@ -166,10 +186,10 @@ function complete(task, li) {
     const result = await api("POST", `/api/tasks/${task.id}/done`);
     haptic("success");
     const next = result.next ? ` · наступна ${result.next.deadline.slice(8, 10)}.${result.next.deadline.slice(5, 7)}` : "";
-    toast(`✅ ${task.title}${next}`, () => run(async () => {
+    toast(`${task.title}${next}`, () => run(async () => {
       await api("POST", `/api/tasks/${task.id}/undo`);
       await load();
-    }));
+    }), "check");
     await load();
   }).finally(() => li.classList.remove("leaving"));
 }
@@ -205,7 +225,7 @@ document.querySelectorAll("#filters button").forEach((button) => {
 function editorChips() {
   const e = state.editing;
   chips($("e-priority"), priorityItems(), e.priority, (key) => { e.priority = key; editorChips(); });
-  chips($("e-category"), state.categories, e.category, (key) => { e.category = key; editorChips(); });
+  chips($("e-category"), categoryItems(), e.category, (key) => { e.category = key; editorChips(); });
 }
 
 // Пункт списку «Повторення» для правила: weekly/monthly — лише якщо збігаються з днем дедлайну, як їх ставить бот

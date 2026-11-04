@@ -52,7 +52,8 @@ function renderAchievements() {
       .sort((a, b) => a.hidden - b.hidden || b.progress / b.target - a.progress / a.target || a.target - b.target);
   $("a-list").replaceChildren(...list.map(achItem));
   $("a-empty").hidden = list.length > 0;
-  $("a-empty").textContent = ach.filter === "done" ? "Ще жодної ачівки. Виконай першу задачу 🌱" : "Усе відкрито! 🎉";
+  $("a-empty").replaceChildren(ach.filter === "done"
+    ? icon("quest", "Ще жодної ачівки. Виконай першу задачу") : icon("sparkle", "Усе відкрито!"));
 
   $("a-recent").replaceChildren(...d.recent.map((r) => {
     const li = el("li");

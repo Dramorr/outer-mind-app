@@ -12,6 +12,7 @@ const BADGE_COLORS = {
   b: "#a8e4ff", B: "#4a8ad8", N: "#27467e",       // магія, скло
   k: "#f2ecdf", K: "#b3a892", J: "#6e6656",       // кістка
   r: "#d23a46", E: "#7a1a2a",                     // рубін
+  l: "#9be36e", L: "#4aa84a", M: "#25643a",       // зелень
 };
 
 const GLYPHS = {

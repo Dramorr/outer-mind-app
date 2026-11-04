@@ -18,8 +18,15 @@ function money(kop, sign = false) {
   return `${prefix}${s} ₴`;
 }
 
-const catLabel = (key) => fin.data?.categories.find((c) => c.key === key)?.label || key;
-const catIcon = (key) => catLabel(key).split(" ")[0];
+const catLabel = (key) => plainLabel(fin.data?.categories.find((c) => c.key === key)?.label || key);
+const catIcon = (key) => FIN_CAT_ICON[key] || "mystery";
+const catItem = (key) => ({ key, label: catLabel(key), icon: catIcon(key) });
+
+function icoCell(name) {
+  const span = el("span", "ico");
+  span.innerHTML = iconHtml(name);
+  return span;
+}
 const MONTHS = ["січень", "лютий", "березень", "квітень", "травень", "червень",
   "липень", "серпень", "вересень", "жовтень", "листопад", "грудень"];
 
@@ -51,7 +58,7 @@ async function loadFinance() {
 // ---------- рендер ----------
 function opItem(tx, { pending = false } = {}) {
   const li = el("li", "op" + (tx.excluded ? " muted-op" : "") + (pending ? " pending-op" : ""));
-  li.append(el("span", "ico", tx.source === "cash" ? "💵" : catIcon(tx.category)));
+  li.append(icoCell(tx.source === "cash" ? "coin" : catIcon(tx.category)));
   const body = el("div", "body");
   body.append(el("div", "place", tx.description || tx.comment || (tx.source === "cash" ? "Готівка" : "—")));
   const time = new Date(tx.time * 1000);
@@ -61,8 +68,10 @@ function opItem(tx, { pending = false } = {}) {
 
   if (pending) {
     const actions = el("div", "actions");
-    const ok = el("button", "ok", "✅ Ок");
-    const other = el("button", "other", "✏️ Інша");
+    const ok = el("button", "ok");
+    const other = el("button", "other");
+    ok.append(icon("check", "Ок"));
+    other.append(icon("quill", "Інша"));
     ok.type = other.type = "button";
     ok.onclick = (e) => { e.stopPropagation(); confirmOp(tx, null); };
     other.onclick = (e) => { e.stopPropagation(); pickCategory(tx); };
@@ -86,7 +95,7 @@ function renderFinance() {
   $("f-month-line").textContent = t.limits_total
     ? `За місяць: ${money(t.month_spent)} з ${money(t.limits_total)}`
     : `За місяць: ${money(t.month_spent)} · ліміти не задано`;
-  $("f-cash").textContent = d.cash === null ? "💵 Готівка: задати" : `💵 Готівка: ${money(d.cash)}`;
+  $("f-cash").replaceChildren(icon("coin", d.cash === null ? "Готівка: задати" : `Готівка: ${money(d.cash)}`));
   $("f-balance-btn").hidden = !d.has_mono;
 
   // на підтвердження
@@ -96,7 +105,7 @@ function renderFinance() {
   // додавання
   const keys = fin.kind === "income" ? d.income_keys : d.expense_keys;
   if (fin.addCategory && !keys.includes(fin.addCategory)) fin.addCategory = "";
-  chips($("f-add-cat"), [{ key: "", label: "🪄 Бот визначить" }, ...keys.map((k) => ({ key: k, label: catLabel(k) }))],
+  chips($("f-add-cat"), [{ key: "", label: "Бот визначить", icon: "wand" }, ...keys.map(catItem)],
     fin.addCategory, (key) => { fin.addCategory = key; renderFinance(); });
   document.querySelectorAll("#f-kind button").forEach((b) => b.classList.toggle("on", b.dataset.kind === fin.kind));
 
@@ -110,7 +119,7 @@ function renderFinance() {
   $("f-cats").replaceChildren(...d.month.categories.map((c) => {
     const li = el("li");
     const line = el("div", "line");
-    line.append(el("span", "", catLabel(c.key)),
+    line.append(icon(catIcon(c.key), catLabel(c.key)),
       el("span", "", c.limit ? `${money(c.spent)} / ${money(c.limit)} (${c.percent}%)` : money(c.spent)));
     li.append(line);
     if (c.limit) {
@@ -161,7 +170,7 @@ function storeItems(ops) {
     .sort((a, b) => a.excluded - b.excluded || a.total - b.total || b.count - a.count)
     .map((s) => {
       const li = el("li", "op" + (s.excluded ? " muted-op" : ""));
-      li.append(el("span", "ico", s.cash ? "💵" : catIcon(s.category)));
+      li.append(icoCell(s.cash ? "coin" : catIcon(s.category)));
       const body = el("div", "body");
       body.append(el("div", "place", s.place || "Без назви"));
       body.append(el("div", "cat", `${s.count} ${plural(s.count, "операція", "операції", "операцій")}`));
@@ -183,13 +192,19 @@ const shortDate = (ts) => new Date(ts * 1000).toLocaleDateString("uk-UA", { day:
 // Історія одного магазину за весь час
 function storeSheet(place) {
   openSheet((form) => {
-    form.append(el("h2", "", `🏪 ${place}`), el("p", "muted small", "⏳ Завантажую…"));
+    const head = el("h2");
+    const wait = el("p", "muted small");
+    head.append(icon("stall", place));
+    wait.append(icon("hourglass", "Завантажую…"));
+    form.append(head, wait);
   });
   run(async () => {
     const s = await api("GET", `/api/finance/store?place=${encodeURIComponent(place)}`);
     const form = $("fsheet-form");
     if ($("fsheet").hidden) return; // панель уже закрили
-    form.replaceChildren(el("h2", "", `🏪 ${place}`));
+    const head = el("h2");
+    head.append(icon("stall", place));
+    form.replaceChildren(head);
     const totals = el("div", "totals");
     const cell = (title, value) => {
       const div = el("div");
@@ -234,19 +249,21 @@ function pickCategory(tx) {
     if (tx.status === "pending") form.append(el("p", "muted small", "Чекає підтвердження. Обери категорію:"));
     const keys = tx.amount > 0 ? fin.data.income_keys : fin.data.expense_keys;
     const box = el("div", "chips");
-    chips(box, keys.map((k) => ({ key: k, label: catLabel(k) })), tx.category, (key) => {
+    chips(box, keys.map(catItem), tx.category, (key) => {
       closeSheet();
       confirmOp(tx, key);
     });
     form.append(box);
     if (placeOf(tx)) {
-      const history = el("button", "ghost", "🏪 Усі операції тут");
+      const history = el("button", "ghost");
+      history.append(icon("stall", "Усі операції тут"));
       history.type = "button";
       history.onclick = () => storeSheet(placeOf(tx));
       form.append(history);
     }
     if (tx.source === "cash") {
-      const del = el("button", "danger", "🗑 Видалити запис");
+      const del = el("button", "danger");
+      del.append(icon("bin", "Видалити запис"));
       del.type = "button";
       del.onclick = () => {
         const go = () => run(async () => {
@@ -263,9 +280,11 @@ function pickCategory(tx) {
   });
 }
 
-function amountSheet(title, hint, initial, onSave) {
+function amountSheet(title, hint, initial, onSave, iconName) {
   openSheet((form) => {
-    form.append(el("h2", "", title));
+    const head = el("h2");
+    head.append(iconName ? icon(iconName, title) : title);
+    form.append(head);
     if (hint) form.append(el("p", "muted small", hint));
     const input = el("input");
     input.inputMode = "decimal";
@@ -296,7 +315,7 @@ function amountSheet(title, hint, initial, onSave) {
 function editLimit(category, current) {
   if (!fin.data.limit_keys.includes(category)) return;
   amountSheet(`Ліміт: ${catLabel(category)}`, "На місяць. 0 — прибрати ліміт.", current,
-    (amount) => api("PUT", "/api/finance/limits", { category, amount }));
+    (amount) => api("PUT", "/api/finance/limits", { category, amount }), catIcon(category));
 }
 
 // ---------- дії ----------
@@ -304,22 +323,22 @@ function confirmOp(tx, category) {
   run(async () => {
     await api("POST", "/api/finance/ops/confirm", { id: tx.id, category });
     haptic("success");
-    if (category && category !== tx.category) toast(`${catLabel(category)}`);
+    if (category && category !== tx.category) toast(catLabel(category), null, catIcon(category));
     await loadFinance();
   });
 }
 
-$("f-cash").onclick = () => amountSheet("💵 Готівка", "Скільки зараз у гаманці. Далі бот рахує сам.", fin.data?.cash,
-  (amount) => api("PUT", "/api/finance/cash", { amount }));
+$("f-cash").onclick = () => amountSheet("Готівка", "Скільки зараз у гаманці. Далі бот рахує сам.", fin.data?.cash,
+  (amount) => api("PUT", "/api/finance/cash", { amount }), "coin");
 
 $("f-balance-btn").onclick = () => run(async () => {
   $("f-balance").hidden = false;
-  $("f-balance").textContent = "⏳ Питаю Monobank…";
+  $("f-balance").replaceChildren(icon("hourglass", "Питаю Monobank…"));
   const b = await api("GET", "/api/finance/balance");
-  const lines = b.cards.map((c) => `💳 ${c.name}: ${money(c.amount)}`);
-  if (b.note) lines.push(b.note);
-  if (b.cash !== null) lines.push(`💵 Готівка: ${money(b.cash)}`);
-  $("f-balance").textContent = lines.join(" · ");
+  const parts = b.cards.map((c) => ["key", `${c.name}: ${money(c.amount)}`]);
+  if (b.note) parts.push([null, b.note]);
+  if (b.cash !== null) parts.push(["coin", `Готівка: ${money(b.cash)}`]);
+  $("f-balance").replaceChildren(metaLine("", parts));
 });
 
 document.querySelectorAll("#f-kind button").forEach((button) => {
@@ -337,7 +356,7 @@ $("f-add").addEventListener("submit", (event) => {
       amount, kind: fin.kind, comment: $("f-comment").value, category: fin.addCategory || null,
     });
     haptic("success");
-    toast(`${fin.kind === "income" ? "+" : "−"}${amount} ₴ записано`);
+    toast(`${fin.kind === "income" ? "+" : "−"}${amount} ₴ записано`, null, "coin");
     $("f-amount").value = "";
     $("f-comment").value = "";
     $("f-add-extra").hidden = true;
