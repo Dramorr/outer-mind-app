@@ -1,4 +1,4 @@
-// Вкладка «Ачівки». Спільні api(), el(), banner(), barFill() — з app.js і finance.js.
+// Вкладка «Ачівки». Спільні api(), el(), banner(), barFill() — з app.js і finance.js; badgeSvg() — з badges.js.
 
 const ach = { data: null, filter: "progress" };
 
@@ -15,7 +15,9 @@ async function loadAchievements() {
 
 function achItem(a) {
   const li = el("li", "ach" + (a.unlocked_at ? "" : " locked"));
-  li.append(el("span", "ico", a.icon));
+  const ico = el("span", "ico badge");
+  if (a.badge) ico.innerHTML = badgeSvg(a.badge); else ico.textContent = a.icon;
+  li.append(ico);
   const body = el("div", "body");
   body.append(el("div", "title", a.title), el("div", "desc", a.description));
   if (a.unlocked_at) {
